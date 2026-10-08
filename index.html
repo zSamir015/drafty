@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Drafty</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <script type="module" src="js/main.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>Drafty</h1>
+    </header>
+
+    <main class="board">
+      <section class="column" data-column="todo" aria-labelledby="col-todo">
+        <h2 id="col-todo">Por hacer <span class="count"></span></h2>
+        <ul class="cards"></ul>
+        <form class="add-form">
+          <input name="title" type="text" placeholder="Nueva tarea…" aria-label="Nueva tarea en Por hacer" required />
+          <button type="submit">Añadir</button>
+        </form>
+      </section>
+
+      <section class="column" data-column="doing" aria-labelledby="col-doing">
+        <h2 id="col-doing">En progreso <span class="count"></span></h2>
+        <ul class="cards"></ul>
+        <form class="add-form">
+          <input name="title" type="text" placeholder="Nueva tarea…" aria-label="Nueva tarea en En progreso" required />
+          <button type="submit">Añadir</button>
+        </form>
+      </section>
+
+      <section class="column" data-column="done" aria-labelledby="col-done">
+        <h2 id="col-done">Hecho <span class="count"></span></h2>
+        <ul class="cards"></ul>
+        <form class="add-form">
+          <input name="title" type="text" placeholder="Nueva tarea…" aria-label="Nueva tarea en Hecho" required />
+          <button type="submit">Añadir</button>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>
