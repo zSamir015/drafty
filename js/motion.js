@@ -59,13 +59,20 @@ export async function exit(el) {
   el.remove();
 }
 
-/** Mide las posiciones actuales (visuales) y cancela FLIPs en curso. */
+/**
+ * Mide las posiciones actuales (visuales) y detiene los FLIPs en curso.
+ * Ojo: `cancel()` de Motion vuelve al primer keyframe y lo deja escrito;
+ * por eso se usa `stop()` y se limpia el desplazamiento a mano.
+ */
 export function measure(els) {
   const rects = new Map();
   for (const el of els) rects.set(el, el.getBoundingClientRect());
   for (const el of rects.keys()) {
-    running.get(el)?.cancel();
+    const controls = running.get(el);
+    if (!controls) continue;
+    controls.stop();
     running.delete(el);
+    animate(el, { x: 0, y: 0 }, { duration: 0 });
   }
   return rects;
 }
@@ -119,4 +126,40 @@ export async function toastOut(el) {
   const keyframes = reducedMotion() ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.95 };
   await animate(el, keyframes, { duration: 0.18, ease: 'easeIn' });
   el.remove();
+}
+
+/** Anima un valor numérico (0 -> 1 por defecto) llamando a `onUpdate` en cada frame. */
+export function driver(onUpdate, { from = 0, to = 1, options = spring.snappy } = {}) {
+  if (reducedMotion()) {
+    onUpdate(to);
+    return Promise.resolve();
+  }
+  return animate(from, to, { ...options, onUpdate });
+}
+
+/**
+ * Lleva la tarjeta fantasma desde su pose actual hasta el hueco.
+ * `from` y `to`: { x, y, rot, scale } (x, y en px relativos al origen del fantasma).
+ */
+export function settle(ghost, from, to) {
+  const mix = (a, b, t) => a + (b - a) * t;
+  return driver(
+    (t) => {
+      ghost.style.transform = `translate3d(${mix(from.x, to.x, t)}px, ${mix(from.y, to.y, t)}px, 0) rotate(${mix(from.rot, to.rot, t)}deg) scale(${mix(from.scale, to.scale, t)})`;
+    },
+    { options: { type: 'spring', duration: 0.34, bounce: 0.15 } },
+  );
+}
+
+/** Sello que cae sobre la tarjeta y se desvanece. */
+export function stamp(card, text) {
+  if (reducedMotion()) return;
+  const el = document.createElement('span');
+  el.className = 'stamp';
+  el.setAttribute('aria-hidden', 'true');
+  el.textContent = text;
+  card.append(el);
+  animate(el, { opacity: [0, 1], scale: [1.9, 1], rotate: [-18, -8] }, spring.soft)
+    .then(() => animate(el, { opacity: 0 }, { duration: 0.4, delay: 0.8 }))
+    .then(() => el.remove());
 }

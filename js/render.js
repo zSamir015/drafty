@@ -43,7 +43,7 @@ function renderCard(card, editing) {
 
   return h(
     'li',
-    { class: 'card', draggable: 'true', dataset: { id: card.id } },
+    { class: 'card', dataset: { id: card.id } },
     h('span', { class: 'card-code', text: code }),
     h('p', { class: 'card-title', text: card.title }),
     h(

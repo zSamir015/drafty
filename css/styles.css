@@ -158,6 +158,7 @@ body {
 .cards {
   display: flex;
   flex-direction: column;
+  position: relative;
   list-style: none;
   margin: 0 0 0.5rem;
   padding: 0;
@@ -178,6 +179,8 @@ body {
   background: var(--surface);
   border: 1px solid var(--line);
   cursor: grab;
+  user-select: none;
+  -webkit-touch-callout: none;
   transition:
     box-shadow 0.15s,
     border-color 0.15s;
@@ -187,11 +190,6 @@ body {
 .card:focus-within {
   border-color: var(--ink-2);
   box-shadow: 3px 3px 0 var(--line);
-}
-
-.card.is-dragging {
-  opacity: 0.4;
-  border-color: var(--accent);
 }
 
 .card-code {
@@ -238,12 +236,6 @@ body {
 .add-form input {
   flex: 1;
   min-width: 0;
-}
-
-.drop-indicator {
-  height: 0;
-  margin-bottom: var(--gap);
-  border-top: 2px dashed var(--accent);
 }
 
 button,
@@ -332,4 +324,49 @@ button:active {
 .toast-action:hover {
   background: var(--accent);
   filter: brightness(1.1);
+}
+
+/* Arrastre */
+.is-dragging-any,
+.is-dragging-any * {
+  cursor: grabbing !important;
+  user-select: none;
+}
+
+.card.is-placeholder {
+  background: transparent;
+  border: 1px dashed var(--accent);
+  box-shadow: none;
+}
+
+.card.is-placeholder > * {
+  visibility: hidden;
+}
+
+.card.is-ghost {
+  z-index: 20;
+  border-color: var(--accent);
+  box-shadow:
+    0 calc(18px * var(--lift, 0)) calc(36px * var(--lift, 0)) rgb(0 0 0 / calc(0.3 * var(--lift, 0))),
+    3px 3px 0 var(--line);
+  pointer-events: none;
+}
+
+.card.is-ghost .card-actions {
+  opacity: 0;
+}
+
+.stamp {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.5rem;
+  padding: 0 0.5rem;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-code);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  pointer-events: none;
 }

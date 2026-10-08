@@ -1,19 +1,37 @@
 /**
- * Drag & drop con la API nativa de HTML5.
- * Solo traduce eventos a (id, columna, índice) y llama a `onMove`;
- * no conoce el estado ni lo modifica.
+ * Arrastre con pointer events (mouse y táctil).
+ * La tarjeta original queda como hueco (`.is-placeholder`) y se mueve por el DOM
+ * mientras se arrastra; una copia (`.is-ghost`) sigue al puntero. Al soltar solo
+ * avisa `onMove(id, column, index)`: no conoce el estado ni lo modifica.
  */
+import { driver, flip, measure, reducedMotion, settle, spring, stamp } from './motion.js';
 
-const CARD = '.card:not(.is-dragging)';
+const MOUSE_THRESHOLD = 4; // px antes de empezar a arrastrar con mouse
+const HOLD_MS = 220; // pulsación larga para empezar con el dedo
+const HOLD_SLOP = 8; // si el dedo se mueve más, es scroll
+const EDGE = 64; // px del borde donde empieza el autoscroll
+const SCROLL_MAX = 14; // px por frame
 
-/** Índice de inserción: cuántas tarjetas (sin la arrastrada) quedan por encima del puntero. */
-function dropIndex(list, clientY) {
-  const cards = [...list.querySelectorAll(CARD)];
-  const index = cards.findIndex((card) => {
-    const box = card.getBoundingClientRect();
-    return clientY < box.top + box.height / 2;
-  });
-  return { cards, index: index === -1 ? cards.length : index };
+const clamp = (n, min, max) => Math.min(Math.max(n, min), max);
+const isLive = (el) => el.classList.contains('card') && !el.classList.contains('is-exiting');
+const liveCards = (list) => [...list.children].filter(isLive);
+
+/** Columna más cercana: primero por distancia horizontal, luego por vertical. */
+function nearestColumn(columns, x, y) {
+  let best = columns[0];
+  let bestDx = Infinity;
+  let bestDy = Infinity;
+  for (const section of columns) {
+    const r = section.getBoundingClientRect();
+    const dx = Math.max(r.left - x, 0, x - r.right);
+    const dy = Math.max(r.top - y, 0, y - r.bottom);
+    if (dx < bestDx || (dx === bestDx && dy < bestDy)) {
+      best = section;
+      bestDx = dx;
+      bestDy = dy;
+    }
+  }
+  return best;
 }
 
 /**
@@ -21,61 +39,203 @@ function dropIndex(list, clientY) {
  * @param {(id: string, column: string, index: number) => void} onMove
  */
 export function initDragDrop(board, onMove) {
-  const indicator = document.createElement('li');
-  indicator.className = 'drop-indicator';
-  indicator.setAttribute('aria-hidden', 'true');
+  const columns = [...board.querySelectorAll('[data-column]')];
+  let pending = null;
+  let drag = null;
 
-  let draggedId = null;
-
-  const clearTargets = () => {
-    indicator.remove();
-    for (const el of board.querySelectorAll('.is-over')) el.classList.remove('is-over');
+  const clearPending = () => {
+    if (pending) clearTimeout(pending.timer);
+    pending = null;
   };
 
-  board.addEventListener('dragstart', (e) => {
-    const card = e.target.closest?.('.card');
-    if (!card) return;
-    draggedId = card.dataset.id;
-    e.dataTransfer.setData('text/plain', draggedId);
-    e.dataTransfer.effectAllowed = 'move';
-    // El navegador toma la imagen de arrastre antes de aplicar la clase
-    requestAnimationFrame(() => card.classList.add('is-dragging'));
+  const setOver = (section) => {
+    for (const c of columns) c.classList.toggle('is-over', c === section);
+  };
+
+  board.addEventListener('pointerdown', (e) => {
+    if (drag || pending || e.button !== 0 || !e.isPrimary) return;
+    const card = e.target.closest('.card');
+    if (!card || card.classList.contains('is-editing') || card.classList.contains('is-exiting')) return;
+    if (e.target.closest('button, input, a')) return;
+
+    pending = {
+      card,
+      pointerId: e.pointerId,
+      type: e.pointerType,
+      x0: e.clientX,
+      y0: e.clientY,
+      x: e.clientX,
+      y: e.clientY,
+      timer: 0,
+    };
+    if (e.pointerType !== 'mouse') pending.timer = setTimeout(begin, HOLD_MS);
   });
 
-  board.addEventListener('dragover', (e) => {
-    const list = e.target.closest?.('.cards');
-    if (!list || !draggedId) return;
-    e.preventDefault(); // sin esto el navegador nunca dispara `drop`
-    e.dataTransfer.dropEffect = 'move';
-
-    const { cards, index } = dropIndex(list, e.clientY);
-    list.insertBefore(indicator, cards[index] ?? null);
-    for (const el of board.querySelectorAll('.is-over')) el.classList.remove('is-over');
-    list.closest('[data-column]').classList.add('is-over');
-  });
-
-  board.addEventListener('dragleave', (e) => {
-    const column = e.target.closest?.('[data-column]');
-    if (column && !column.contains(e.relatedTarget)) {
-      column.classList.remove('is-over');
-      if (indicator.parentElement && column.contains(indicator)) indicator.remove();
+  document.addEventListener('pointermove', (e) => {
+    if (pending && e.pointerId === pending.pointerId) {
+      pending.x = e.clientX;
+      pending.y = e.clientY;
+      const dist = Math.hypot(e.clientX - pending.x0, e.clientY - pending.y0);
+      if (pending.type === 'mouse') {
+        if (dist > MOUSE_THRESHOLD) begin();
+      } else if (dist > HOLD_SLOP) {
+        clearPending(); // era un scroll
+      }
+    } else if (drag && e.pointerId === drag.pointerId) {
+      drag.px = e.clientX;
+      drag.py = e.clientY;
     }
   });
 
-  board.addEventListener('drop', (e) => {
-    const list = e.target.closest?.('.cards');
-    if (!list) return;
-    e.preventDefault();
-    const id = e.dataTransfer.getData('text/plain') || draggedId;
-    const { index } = dropIndex(list, e.clientY);
-    const column = list.closest('[data-column]').dataset.column;
-    clearTargets();
-    if (id) onMove(id, column, index);
+  document.addEventListener('pointerup', (e) => {
+    if (pending && e.pointerId === pending.pointerId) clearPending();
+    else if (drag && e.pointerId === drag.pointerId) finish(true);
   });
 
-  board.addEventListener('dragend', () => {
-    draggedId = null;
-    clearTargets();
-    for (const el of board.querySelectorAll('.is-dragging')) el.classList.remove('is-dragging');
+  document.addEventListener('pointercancel', (e) => {
+    if (pending && e.pointerId === pending.pointerId) clearPending();
+    else if (drag && e.pointerId === drag.pointerId) finish(false);
   });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && drag) finish(false);
+  });
+
+  // Con el dedo, una vez arrastrando, el navegador no debe hacer scroll ni abrir menús
+  document.addEventListener('touchmove', (e) => drag && e.preventDefault(), { passive: false });
+  board.addEventListener('contextmenu', (e) => (pending || drag) && e.preventDefault());
+
+  function begin() {
+    if (!pending) return;
+    const { card, pointerId, x, y } = pending;
+    clearPending();
+
+    const origin = card.getBoundingClientRect();
+    const ghost = card.cloneNode(true);
+    ghost.classList.add('is-ghost');
+    ghost.removeAttribute('data-id');
+    ghost.setAttribute('aria-hidden', 'true');
+    ghost.inert = true;
+    Object.assign(ghost.style, {
+      position: 'fixed',
+      left: `${origin.left}px`,
+      top: `${origin.top}px`,
+      width: `${origin.width}px`,
+      height: `${origin.height}px`,
+      margin: '0',
+    });
+    document.body.append(ghost);
+
+    card.classList.add('is-placeholder');
+    document.body.classList.add('is-dragging-any');
+    document.documentElement.setPointerCapture?.(pointerId);
+
+    drag = {
+      id: card.dataset.id,
+      card,
+      ghost,
+      origin,
+      pointerId,
+      offX: x - origin.left,
+      offY: y - origin.top,
+      px: x,
+      py: y,
+      lastX: x,
+      lift: 0,
+      tilt: 0,
+      last: performance.now(),
+      raf: 0,
+      fromColumn: card.closest('[data-column]').dataset.column,
+      home: { list: card.parentElement, next: card.nextElementSibling },
+    };
+    const d = drag;
+    driver((v) => (d.lift = v), { options: spring.snappy });
+    d.raf = requestAnimationFrame(frame);
+  }
+
+  /** Pose actual del fantasma. */
+  function pose(d) {
+    const motion = !reducedMotion();
+    return {
+      x: d.px - d.offX - d.origin.left,
+      y: d.py - d.offY - d.origin.top,
+      rot: motion ? d.lift * 1.5 + d.tilt : 0,
+      scale: motion ? 1 + 0.03 * d.lift : 1,
+    };
+  }
+
+  function apply(d) {
+    const p = pose(d);
+    d.ghost.style.transform = `translate3d(${p.x}px, ${p.y}px, 0) rotate(${p.rot}deg) scale(${p.scale})`;
+    d.ghost.style.setProperty('--lift', String(d.lift));
+  }
+
+  function frame(now) {
+    const d = drag;
+    if (!d) return;
+    const dt = clamp(now - d.last, 1, 50);
+    d.last = now;
+
+    // Inclinación según la velocidad horizontal, suavizada
+    const vx = ((d.px - d.lastX) / dt) * 16;
+    d.lastX = d.px;
+    d.tilt += (clamp(vx * 0.6, -8, 8) - d.tilt) * 0.2;
+
+    // Autoscroll vertical cerca de los bordes
+    if (d.py < EDGE) window.scrollBy(0, -SCROLL_MAX * ((EDGE - d.py) / EDGE));
+    else if (d.py > innerHeight - EDGE) window.scrollBy(0, SCROLL_MAX * ((d.py - (innerHeight - EDGE)) / EDGE));
+
+    apply(d);
+    retarget(d);
+    d.raf = requestAnimationFrame(frame);
+  }
+
+  /** Mueve el hueco a la columna/posición bajo el puntero. */
+  function retarget(d) {
+    const section = nearestColumn(columns, d.px, d.py);
+    const list = section.querySelector('.cards');
+    const localY = d.py - list.getBoundingClientRect().top;
+
+    // offsetTop ignora las transformaciones en curso (FLIP), así no hay vaivén
+    const others = liveCards(list).filter((el) => el !== d.card);
+    let index = others.findIndex((el) => el.offsetTop + el.offsetHeight / 2 > localY);
+    if (index === -1) index = others.length;
+
+    setOver(section);
+    const current = d.card.parentElement === list ? liveCards(list).indexOf(d.card) : -1;
+    if (current === index) return;
+
+    const before = measure(board.querySelectorAll('.card:not(.is-exiting):not(.is-placeholder)'));
+    list.insertBefore(d.card, others[index] ?? null);
+    flip(before);
+  }
+
+  function finish(commit) {
+    const d = drag;
+    if (!d) return;
+    drag = null;
+    cancelAnimationFrame(d.raf);
+    document.body.classList.remove('is-dragging-any');
+    document.documentElement.releasePointerCapture?.(d.pointerId);
+    setOver(null);
+
+    if (!commit && (d.card.parentElement !== d.home.list || d.card.nextElementSibling !== d.home.next)) {
+      const before = measure(board.querySelectorAll('.card:not(.is-exiting):not(.is-placeholder)'));
+      d.home.list.insertBefore(d.card, d.home.next);
+      flip(before);
+    }
+
+    const column = d.card.closest('[data-column]').dataset.column;
+    const index = liveCards(d.card.parentElement).indexOf(d.card);
+    if (commit) onMove(d.id, column, index);
+
+    const target = d.card.getBoundingClientRect();
+    const from = pose(d);
+    const to = { x: target.left - d.origin.left, y: target.top - d.origin.top, rot: 0, scale: 1 };
+    Promise.resolve(settle(d.ghost, from, to)).then(() => {
+      d.ghost.remove();
+      d.card.classList.remove('is-placeholder');
+      if (commit && column === 'done' && d.fromColumn !== 'done') stamp(d.card, 'Hecho');
+    });
+  }
 }
