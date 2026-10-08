@@ -2,14 +2,19 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   MAX_TITLE_LENGTH,
+  PRIORITIES,
   addCard,
   createInitialState,
   deleteCard,
   editCard,
   formatCode,
   getColumnCards,
+  isOverdue,
   isValidState,
+  matchesQuery,
   moveCard,
+  progress,
+  updateCard,
 } from '../js/state.js';
 
 const empty = () => ({ version: 1, cards: [], nextSeq: 1, revision: 0 });
@@ -94,4 +99,58 @@ test('isValidState acepta el estado inicial y rechaza basura', () => {
   const s = board();
   const dup = { ...s, cards: [s.cards[0], s.cards[0]] };
   assert.equal(isValidState(dup), false);
+});
+
+test('updateCard aplica prioridad, etiqueta y fecha; valores inválidos no cambian nada', () => {
+  const s = board();
+  const id = s.cards[0].id;
+  const next = updateCard(s, id, { priority: 'high', label: '  ui  ', due: 1000 });
+  const card = next.cards[0];
+  assert.equal(card.priority, 'high');
+  assert.equal(card.label, 'ui');
+  assert.equal(card.due, 1000);
+  assert.equal(updateCard(s, id, { priority: 'urgente' }), s);
+  assert.equal(updateCard(s, id, { due: 'mañana' }), s);
+  assert.equal(updateCard(next, id, { priority: 'high' }), next);
+  assert.deepEqual(PRIORITIES, ['low', 'med', 'high']);
+});
+
+test('updateCard: label vacío o null lo quita; se limita a 20 caracteres', () => {
+  const s = updateCard(board(), board().cards[0].id, {});
+  const id = s.cards[0].id;
+  const withLabel = updateCard(s, id, { label: 'x'.repeat(30) });
+  assert.equal(withLabel.cards[0].label.length, 20);
+  assert.equal(updateCard(withLabel, id, { label: '' }).cards[0].label, null);
+});
+
+test('matchesQuery busca en título, etiqueta y código', () => {
+  const card = { seq: 7, title: 'Diseñar logo', label: 'marca' };
+  assert.equal(matchesQuery(card, ''), true);
+  assert.equal(matchesQuery(card, 'LOGO'), true);
+  assert.equal(matchesQuery(card, 'marca'), true);
+  assert.equal(matchesQuery(card, 'tk-007'), true);
+  assert.equal(matchesQuery(card, 'backend'), false);
+});
+
+test('isOverdue: fecha pasada y no hecha', () => {
+  const now = new Date(2026, 9, 8, 15).getTime();
+  const yesterday = new Date(2026, 9, 7).getTime();
+  const today = new Date(2026, 9, 8).getTime();
+  assert.equal(isOverdue({ due: yesterday, column: 'todo' }, now), true);
+  assert.equal(isOverdue({ due: today, column: 'todo' }, now), false);
+  assert.equal(isOverdue({ due: yesterday, column: 'done' }, now), false);
+  assert.equal(isOverdue({ due: null, column: 'todo' }, now), false);
+});
+
+test('progress cuenta hechas sobre total', () => {
+  assert.deepEqual(progress(board()), { done: 0, total: 3 });
+  assert.deepEqual(progress(empty()), { done: 0, total: 0 });
+});
+
+test('isValidState acepta campos opcionales válidos y rechaza inválidos', () => {
+  const s = board();
+  const ok = { ...s, cards: s.cards.map((c) => ({ ...c, priority: 'low', label: 'a', due: 5 })) };
+  assert.equal(isValidState(ok), true);
+  const bad = { ...s, cards: s.cards.map((c) => ({ ...c, priority: 'x' })) };
+  assert.equal(isValidState(bad), false);
 });

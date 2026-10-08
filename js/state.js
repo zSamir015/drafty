@@ -10,6 +10,11 @@
  * @property {string}   title
  * @property {ColumnId} column
  * @property {number}   createdAt  Date.now()
+ * @property {Priority|null} [priority]
+ * @property {string|null}   [label]  hasta MAX_LABEL_LENGTH caracteres
+ * @property {number|null}   [due]    timestamp de la fecha límite (medianoche local)
+ *
+ * @typedef {'low'|'med'|'high'} Priority
  *
  * @typedef {Object} BoardState
  * @property {1}      version
@@ -20,6 +25,8 @@
 
 export const COLUMNS = Object.freeze(['todo', 'doing', 'done']);
 export const MAX_TITLE_LENGTH = 200;
+export const MAX_LABEL_LENGTH = 20;
+export const PRIORITIES = Object.freeze(['low', 'med', 'high']);
 
 const clamp = (n, min, max) => Math.min(Math.max(n, min), max);
 const isColumn = (value) => COLUMNS.includes(value);
@@ -74,12 +81,45 @@ export function addCard(state, title, column = 'todo') {
 
 /** @returns {BoardState} */
 export function editCard(state, id, title) {
-  const clean = cleanTitle(title);
+  return updateCard(state, id, { title });
+}
+
+const isDue = (value) => value === null || Number.isFinite(value);
+
+/**
+ * Cambia uno o varios campos. Cualquier valor inválido anula todo el cambio.
+ * `label: ''` o `null` quita la etiqueta.
+ * @param {{ title?: string, priority?: Priority|null, label?: string|null, due?: number|null }} patch
+ * @returns {BoardState}
+ */
+export function updateCard(state, id, patch) {
   const card = getCard(state, id);
-  if (!card || !clean || clean === card.title) return state;
+  if (!card) return state;
+  const next = { ...card };
+
+  if ('title' in patch) {
+    const clean = cleanTitle(patch.title);
+    if (!clean) return state;
+    next.title = clean;
+  }
+  if ('priority' in patch) {
+    if (patch.priority !== null && !PRIORITIES.includes(patch.priority)) return state;
+    next.priority = patch.priority;
+  }
+  if ('label' in patch) {
+    if (patch.label !== null && typeof patch.label !== 'string') return state;
+    next.label = patch.label?.trim().slice(0, MAX_LABEL_LENGTH) || null;
+  }
+  if ('due' in patch) {
+    if (!isDue(patch.due)) return state;
+    next.due = patch.due;
+  }
+
+  const changed = ['title', 'priority', 'label', 'due'].some((k) => (next[k] ?? null) !== (card[k] ?? null));
+  if (!changed) return state;
   return bump(
     state,
-    state.cards.map((c) => (c.id === id ? { ...c, title: clean } : c)),
+    state.cards.map((c) => (c.id === id ? next : c)),
   );
 }
 
@@ -131,6 +171,29 @@ export function formatCode(card) {
   return `TK-${String(card.seq).padStart(3, '0')}`;
 }
 
+/** Búsqueda sin distinguir mayúsculas en título, etiqueta y código. */
+export function matchesQuery(card, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  return [card.title, card.label ?? '', formatCode(card)].some((text) => text.toLowerCase().includes(q));
+}
+
+/** Vencida: tiene fecha anterior a hoy y no está hecha. */
+export function isOverdue(card, now = Date.now()) {
+  if (card.due == null || card.column === 'done') return false;
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  return card.due < today.getTime();
+}
+
+/** @returns {{ done: number, total: number }} */
+export function progress(state) {
+  return {
+    done: state.cards.filter((c) => c.column === 'done').length,
+    total: state.cards.length,
+  };
+}
+
 const isCount = (n) => Number.isInteger(n) && n >= 0;
 
 /** Valida estructura y tipos de un valor desconocido (localStorage, importación). */
@@ -145,6 +208,9 @@ export function isValidState(value) {
     if (!Number.isInteger(c.seq) || c.seq < 1 || c.seq >= value.nextSeq) return false;
     if (typeof c.title !== 'string' || !c.title.trim() || c.title.length > MAX_TITLE_LENGTH) return false;
     if (!isColumn(c.column) || !Number.isFinite(c.createdAt)) return false;
+    if (c.priority != null && !PRIORITIES.includes(c.priority)) return false;
+    if (c.label != null && (typeof c.label !== 'string' || c.label.length > MAX_LABEL_LENGTH)) return false;
+    if (c.due != null && !Number.isFinite(c.due)) return false;
     ids.add(c.id);
   }
   return true;
