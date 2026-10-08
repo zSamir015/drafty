@@ -288,3 +288,48 @@ button:active {
     transition-duration: 0.01ms !important;
   }
 }
+
+.toasts {
+  position: fixed;
+  inset: auto 0 1rem;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 1rem;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: min(32rem, 100%);
+  padding: 0.5rem 0.5rem 0.5rem 1.125rem;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.8125rem;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+  pointer-events: auto;
+}
+
+.toast-text {
+  overflow-wrap: anywhere;
+}
+
+.toast-action {
+  flex: none;
+  padding: 0.25rem 0.875rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--paper);
+  font-weight: 700;
+}
+
+.toast-action:hover {
+  background: var(--accent);
+  filter: brightness(1.1);
+}

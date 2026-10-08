@@ -102,3 +102,21 @@ export function tick(el, text, dir) {
   if (reducedMotion()) return;
   animate(el, { y: [dir * 8, 0], opacity: [0, 1] }, spring.snappy);
 }
+
+/** Entrada de un toast: sube y se expande con spring. */
+export function toastIn(el) {
+  if (reducedMotion()) {
+    animate(el, { opacity: [0, 1] }, FADE);
+    return;
+  }
+  animate(el, { opacity: [0, 1], y: [24, 0], scale: [0.9, 1] }, spring.soft);
+}
+
+/** Salida de un toast; elimina el nodo al terminar. */
+export async function toastOut(el) {
+  el.classList.add('is-leaving');
+  el.inert = true;
+  const keyframes = reducedMotion() ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.95 };
+  await animate(el, keyframes, { duration: 0.18, ease: 'easeIn' });
+  el.remove();
+}
