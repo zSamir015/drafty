@@ -8,7 +8,12 @@ const board = document.querySelector('.board');
 let state = load();
 const ui = { editingId: null };
 
-const redraw = () => render(state, ui, board);
+const rev = document.querySelector('.rev');
+
+const redraw = () => {
+  render(state, ui, board);
+  rev.textContent = `REV ${String(state.revision).padStart(3, '0')}`;
+};
 
 /** Único punto de entrada de cambios: estado -> save -> render. */
 function commit(next) {
