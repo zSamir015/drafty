@@ -1,8 +1,8 @@
-// Antes de pintar: aplica el tema guardado para evitar un destello.
-// Script clásico y bloqueante a propósito; está aparte para no necesitar 'unsafe-inline' en la CSP.
+// Before first paint: apply the saved theme to avoid a flash.
+// A classic, render-blocking script on purpose; it lives in its own file so the CSP needs no 'unsafe-inline'.
 try {
   const theme = localStorage.getItem('drafty:theme');
   if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
 } catch {
-  // sin localStorage: se usa el tema del sistema
+  // no localStorage: fall back to the system theme
 }

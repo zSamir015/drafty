@@ -1,99 +1,108 @@
 # Drafty
 
+🌐 **English** · [Español](README.es.md)
+
 [![Tests](https://github.com/zSamir015/drafty/actions/workflows/test.yml/badge.svg)](https://github.com/zSamir015/drafty/actions/workflows/test.yml)
-[![Licencia MIT](https://img.shields.io/badge/licencia-MIT-blue.svg)](LICENSE)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**[Demo en vivo →](https://zsamir015.github.io/drafty/)**
+**[Live demo →](https://zsamir015.github.io/drafty/)**
 
-Tablero Kanban con estética de plano técnico (blueprint), arrastre fluido y animaciones con física. Hecho en **JavaScript vanilla**, sin frameworks ni build.
+A Kanban board with a technical-drawing (blueprint) look, fluid drag and drop, and physics-based animations. Built with **vanilla JavaScript**, no frameworks and no build step. The interface is in Spanish.
 
-![Demo: añadir, arrastrar entre columnas, sello al terminar y deshacer](docs/media/demo.gif)
+![Demo: add a task, drag it across columns, the done stamp, and undo](docs/media/demo.gif)
 
-| Claro | Oscuro | Móvil |
+## What this project shows
+
+- **Complex interaction without frameworks**: custom pointer-event drag and drop, FLIP animations and spring physics.
+- **Clean architecture**: pure, immutable state kept apart from the DOM, with a single entry point for changes.
+- **Full accessibility**: everything can be done from the keyboard, with screen-reader announcements.
+- **Quality**: 30 unit tests, CI on every push, a strict CSP and offline support (PWA).
+
+| Light | Dark | Mobile |
 |---|---|---|
-| ![Tablero en tema claro](docs/media/board-light.png) | ![Tablero en tema oscuro](docs/media/board-dark.png) | ![Vista móvil](docs/media/mobile.png) |
+| ![Board in light theme](docs/media/board-light.png) | ![Board in dark theme](docs/media/board-dark.png) | ![Mobile view](docs/media/mobile.png) |
 
-## Características
+## Features
 
-- **Arrastre propio con pointer events**: funciona con mouse y con el dedo (pulsación larga). La tarjeta se levanta con un spring, se inclina según la velocidad, las demás se reacomodan (FLIP) y al soltar se asienta en su hueco. Autoscroll cerca de los bordes; `Esc` cancela.
-- **Animaciones con [Motion](https://motion.dev)**: entrada en cascada, salida con colapso, contadores, toasts y un sello «Hecho» al completar una tarea.
-- **Deshacer / rehacer** (`Ctrl+Z` / `Ctrl+Shift+Z`) con historial de 100 pasos, y toast con botón «Deshacer» al borrar.
-- **Varios tableros** con pestañas: crear, renombrar (doble clic) y borrar.
-- **Tarjetas con prioridad, etiqueta y fecha límite**, con aviso de vencidas.
-- **Búsqueda en vivo** por título, etiqueta o código (`TK-007`).
-- **Límite WIP** en «En progreso»: la columna se marca al superarlo.
-- **Barra de progreso** y cajetín `REV` con el número de cambios.
-- **Exportar / importar JSON** con validación completa del archivo.
-- **Sincronización entre pestañas** abiertas.
-- **Tema claro / oscuro** con transición (View Transitions API).
-- **PWA**: instalable y funciona sin conexión.
-- **Accesible**: todo se puede hacer con teclado, anuncios `aria-live`, foco conservado y respeto de `prefers-reduced-motion`.
+- **Custom drag and drop with pointer events**: works with mouse and touch (long press). The card lifts with a spring, tilts with your speed, the other cards make room (FLIP), and it settles into its slot on drop. Autoscroll near the edges; `Esc` cancels.
+- **Animations with [Motion](https://motion.dev)**: staggered entrances, collapsing exits, counters, toasts, and a "Done" stamp when a task is finished.
+- **Undo / redo** (`Ctrl+Z` / `Ctrl+Shift+Z`) with a 100-step history, plus an "Undo" toast when deleting.
+- **Multiple boards** with tabs: create, rename (double-click) and delete.
+- **Cards with priority, label and due date**, with overdue warnings.
+- **Live search** by title, label or code (`TK-007`).
+- **WIP limit** on "In progress": the column is flagged when it goes over.
+- **Progress bar** and a `REV` title block with the number of changes.
+- **JSON export / import** with full validation of the file.
+- **Sync across open tabs.**
+- **Light / dark theme** with a transition (View Transitions API).
+- **PWA**: installable and works offline.
+- **Accessible**: fully keyboard-operable, `aria-live` announcements, focus preserved, and `prefers-reduced-motion` respected.
 
-## Atajos de teclado
+## Keyboard shortcuts
 
-| Tecla | Acción |
+| Key | Action |
 |---|---|
-| `N` | Nueva tarea |
-| `/` | Buscar |
-| `?` | Ayuda |
-| `Ctrl` `Z` / `Ctrl` `⇧` `Z` | Deshacer / rehacer |
-| `←` `→` `↑` `↓` | Moverse entre tarjetas |
-| `Alt` + flechas | Mover la tarjeta enfocada |
-| `Enter` / `Supr` | Editar / borrar la tarjeta enfocada |
-| `Esc` | Cancelar edición o arrastre |
+| `N` | New task |
+| `/` | Search |
+| `?` | Help |
+| `Ctrl` `Z` / `Ctrl` `⇧` `Z` | Undo / redo |
+| `←` `→` `↑` `↓` | Move between cards |
+| `Alt` + arrows | Move the focused card |
+| `Enter` / `Delete` | Edit / delete the focused card |
+| `Esc` | Cancel editing or dragging |
 
-## Ejecutar
+## Run
 
-Los ES modules no cargan desde `file://`, así que hace falta un servidor estático:
+ES modules do not load from `file://`, so you need a static server:
 
 ```bash
 npm run dev          # python3 -m http.server 5173
-# o: npx serve .
+# or: npx serve .
 ```
 
-Abrir <http://localhost:5173>.
+Open <http://localhost:5173>.
 
 ## Tests
 
 ```bash
-npm test             # node --test, sin dependencias
+npm test             # node --test, no dependencies
 ```
 
-Cubren la lógica pura: estado del tablero, workspace (varios tableros y migración de datos) e historial.
+They cover the pure logic: board state, workspace (multiple boards and data migration) and history.
 
-## Arquitectura
+## Architecture
 
-La lógica está separada del DOM. Todo cambio pasa por un único punto (`commit`) que guarda el estado anterior en el historial, persiste y redibuja.
+Logic is kept apart from the DOM. Every change goes through a single entry point (`commit`) that stores the previous state in the history, persists it and redraws.
 
 ```
 js/
-├── state.js      Estado de un tablero. Funciones puras e inmutables.
-├── workspace.js  Varios tableros, límite WIP y migración v1 → v2. Puras.
-├── history.js    Deshacer / rehacer. Puras.
-├── storage.js    localStorage, sincronización entre pestañas, export / import.
-├── render.js     Reconciliación por id: reutiliza nodos y anima solo lo que cambia.
-├── motion.js     Único módulo que usa Motion (springs, FLIP, entradas, salidas).
-├── dragdrop.js   Arrastre con pointer events; solo emite (id, columna, índice).
-├── keyboard.js   Atajos y movimiento con teclado.
-├── toast.js      Notificaciones con acción.
-├── theme.js      Tema claro / oscuro (theme-init.js lo aplica antes de pintar).
-├── tilt.js       Inclinación 3D al pasar el mouse.
-└── main.js       Conecta los módulos.
+├── state.js      Single-board state. Pure, immutable functions.
+├── workspace.js  Multiple boards, WIP limit and v1 → v2 migration. Pure.
+├── history.js    Undo / redo. Pure.
+├── storage.js    localStorage, cross-tab sync, export / import.
+├── render.js     Keyed reconciliation: reuses nodes and animates only what changed.
+├── motion.js     The only module that uses Motion (springs, FLIP, entrances, exits).
+├── dragdrop.js   Pointer-event drag and drop; only emits (id, column, index).
+├── keyboard.js   Shortcuts and keyboard movement.
+├── toast.js      Notifications with an action.
+├── theme.js      Light / dark theme (theme-init.js applies it before first paint).
+├── tilt.js       3D tilt on hover.
+└── main.js       Wires the modules together.
 ```
 
-Decisiones de diseño:
+Design decisions:
 
-- **Sin build.** Motion se incluye como bundle UMD versionado en `vendor/` (14.0.0, MIT).
-- **Arrastre propio en vez del DnD nativo de HTML5.** El nativo no permite animar la tarjeta arrastrada ni funciona con el dedo.
-- **El arrastre, el teclado y «Mover a…» comparten `moveCard`**, así que se comportan igual.
-- **El texto del usuario nunca pasa por `innerHTML`**, y los datos importados se validan antes de usarse.
+- **No build.** Motion ships as a versioned UMD bundle in `vendor/` (14.0.0, MIT).
+- **Custom drag and drop instead of native HTML5 DnD.** The native API cannot animate the dragged card and does not work with touch.
+- **Drag, keyboard and "Move to…" all share `moveCard`**, so they behave the same way.
+- **User text never goes through `innerHTML`**, and imported data is validated before use.
 
-## Licencia
+## License
 
 [MIT](LICENSE) © 2026 Samir Lorenzo
 
-## Créditos
+## Credits
 
-- [Motion](https://motion.dev): animaciones (MIT).
-- [Monaspace](https://monaspace.githubnext.com): tipografía (SIL OFL 1.1).
-- Toasts inspirados en [Sileo](https://github.com/hiaaryan/sileo).
+- [Motion](https://motion.dev): animations (MIT).
+- [Monaspace](https://monaspace.githubnext.com): typeface (SIL OFL 1.1).
+- Toasts inspired by [Sileo](https://github.com/hiaaryan/sileo).

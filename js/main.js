@@ -35,7 +35,7 @@ let renderedBoardId = null;
 const current = () => activeBoard(ws);
 const cardEl = (id) => board.querySelector(`.card[data-id="${CSS.escape(id)}"]`);
 
-/* ---------- Dibujo ---------- */
+/* ---------- Rendering ---------- */
 
 function redraw() {
   const active = current();
@@ -106,9 +106,9 @@ function announce(message) {
   requestAnimationFrame(() => (region.textContent = message));
 }
 
-/* ---------- Cambios ---------- */
+/* ---------- Changes ---------- */
 
-/** Único punto de entrada de cambios: workspace -> historial -> save -> render. */
+/** Single entry point for changes: workspace -> history -> save -> render. */
 function commit(next, { record = true } = {}) {
   if (next === ws) return false;
   if (record) history = push(history, ws);
@@ -120,7 +120,7 @@ function commit(next, { record = true } = {}) {
 
 const commitBoard = (fn) => commit(updateActive(ws, fn));
 
-/** Aplica el resultado de undo/redo (o no hace nada si no hay a dónde ir). */
+/** Applies an undo/redo result (or does nothing if there is nowhere to go). */
 function travel(result) {
   if (!result) return;
   history = result.history;
@@ -134,7 +134,7 @@ function travel(result) {
 const undoLast = () => travel(undo(history, ws));
 const redoLast = () => travel(redo(history, ws));
 
-/** Toast con "Deshacer" que solo actúa si ese cambio sigue siendo el último. */
+/** Toast with "Undo" that only acts if that change is still the latest one. */
 function undoToast(message) {
   const after = ws;
   showToast({
@@ -168,7 +168,7 @@ function stopEdit(id) {
   cardEl(id)?.focus({ preventScroll: true });
 }
 
-/** Mueve y anuncia; `index` cuenta sin la tarjeta que se mueve (como moveCard). */
+/** Moves and announces; `index` is counted without the moving card (like moveCard). */
 function move(id, column, index) {
   const card = getCard(current().state, id);
   if (!card || !commitBoard((s) => moveCard(s, id, column, index))) return;
@@ -194,7 +194,7 @@ function moveByKey(id, dir) {
   cardEl(id)?.focus({ preventScroll: true });
 }
 
-/* ---------- Eventos del tablero ---------- */
+/* ---------- Board events ---------- */
 
 board.addEventListener('submit', (e) => {
   e.preventDefault();
@@ -219,7 +219,7 @@ board.addEventListener('submit', (e) => {
         due: fromDateInput(due.value),
       }),
     );
-    stopEdit(id); // si no hubo cambio, commit no redibuja y hay que salir del modo edición
+    stopEdit(id); // if nothing changed, commit does not redraw, so leave edit mode explicitly
   }
 });
 
@@ -253,7 +253,7 @@ board.addEventListener('keydown', (e) => {
   }
 });
 
-/** Contador visible a partir del 75 % del máximo. */
+/** Counter becomes visible from 75% of the maximum. */
 function updateCharCount(input) {
   const counter = input.closest('form')?.querySelector('.char-count');
   if (!counter) return;
@@ -277,7 +277,7 @@ wipInput.addEventListener('change', () => {
   }
 });
 
-/* ---------- Barra superior ---------- */
+/* ---------- Top bar ---------- */
 
 search.addEventListener('input', () => {
   ui.query = search.value;
@@ -355,7 +355,7 @@ importInput.addEventListener('change', async () => {
   undoToast('Tableros importados');
 });
 
-/* ---------- Arranque ---------- */
+/* ---------- Startup ---------- */
 
 initTheme(document.querySelector('[data-action="theme"]'));
 initTilt(board);
@@ -371,7 +371,7 @@ initKeyboard({
   moveCard: moveByKey,
 });
 
-// El arrastre solo avisa; la lógica vive en moveCard (mismo camino que teclado y "Mover a…")
+// Drag only reports; the logic lives in moveCard (same path as the keyboard and "Move to…")
 initDragDrop(board, move);
 
 onExternalChange((next) => {
@@ -384,7 +384,7 @@ onExternalChange((next) => {
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   navigator.serviceWorker.register('sw.js').catch(() => {
-    // sin service worker la app funciona igual, solo que no offline
+    // without a service worker the app still works, just not offline
   });
 }
 

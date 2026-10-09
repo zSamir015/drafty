@@ -1,26 +1,26 @@
 /**
- * Estado del tablero. Funciones puras: sin DOM, sin localStorage.
- * Cada función devuelve un estado nuevo (o el mismo si no hay cambio).
+ * Board state. Pure functions: no DOM, no localStorage.
+ * Every function returns a new state (or the same one if nothing changed).
  *
  * @typedef {'todo'|'doing'|'done'} ColumnId
  *
  * @typedef {Object} Card
  * @property {string}   id         crypto.randomUUID()
- * @property {number}   seq        TK-014 -> 14. Solo presentación, nunca se reutiliza
+ * @property {number}   seq        TK-014 -> 14. Display only, never reused
  * @property {string}   title
  * @property {ColumnId} column
  * @property {number}   createdAt  Date.now()
  * @property {Priority|null} [priority]
- * @property {string|null}   [label]  hasta MAX_LABEL_LENGTH caracteres
- * @property {number|null}   [due]    timestamp de la fecha límite (medianoche local)
+ * @property {string|null}   [label]  up to MAX_LABEL_LENGTH characters
+ * @property {number|null}   [due]    due-date timestamp (local midnight)
  *
  * @typedef {'low'|'med'|'high'} Priority
  *
  * @typedef {Object} BoardState
  * @property {1}      version
- * @property {Card[]} cards     el orden del array es el orden visual dentro de cada columna
- * @property {number} nextSeq   contador para los códigos TK-xxx
- * @property {number} revision  +1 por cada cambio (cajetín)
+ * @property {Card[]} cards     array order is the visual order within each column
+ * @property {number} nextSeq   counter for the TK-xxx codes
+ * @property {number} revision  +1 on every change (shown in the title block)
  */
 
 export const COLUMNS = Object.freeze(['todo', 'doing', 'done']);
@@ -31,7 +31,7 @@ export const PRIORITIES = Object.freeze(['low', 'med', 'high']);
 const clamp = (n, min, max) => Math.min(Math.max(n, min), max);
 const isColumn = (value) => COLUMNS.includes(value);
 
-/** Normaliza el título; devuelve '' si no es válido. */
+/** Normalizes the title; returns '' if it is not valid. */
 function cleanTitle(title) {
   return typeof title === 'string' ? title.trim().slice(0, MAX_TITLE_LENGTH) : '';
 }
@@ -87,8 +87,8 @@ export function editCard(state, id, title) {
 const isDue = (value) => value === null || Number.isFinite(value);
 
 /**
- * Cambia uno o varios campos. Cualquier valor inválido anula todo el cambio.
- * `label: ''` o `null` quita la etiqueta.
+ * Changes one or more fields. Any invalid value cancels the whole change.
+ * `label: ''` or `null` removes the label.
  * @param {{ title?: string, priority?: Priority|null, label?: string|null, due?: number|null }} patch
  * @returns {BoardState}
  */
@@ -133,8 +133,8 @@ export function deleteCard(state, id) {
 }
 
 /**
- * toIndex es la posición dentro de la columna destino, contada SIN la
- * tarjeta que se mueve. Se limita a [0, longitud].
+ * toIndex is the position inside the target column, counted WITHOUT the
+ * card being moved. It is clamped to [0, length].
  * @returns {BoardState}
  */
 export function moveCard(state, id, toColumn, toIndex) {
@@ -145,8 +145,8 @@ export function moveCard(state, id, toColumn, toIndex) {
   const dest = rest.filter((c) => c.column === toColumn);
   const index = clamp(Math.trunc(toIndex), 0, dest.length);
 
-  // Posición en el array plano: antes de la tarjeta que ocupa `index`,
-  // o justo después de la última de la columna, o al final si está vacía.
+  // Position in the flat array: before the card at `index`,
+  // or right after the column's last card, or at the end if the column is empty.
   let at = rest.length;
   if (index < dest.length) at = rest.indexOf(dest[index]);
   else if (dest.length > 0) at = rest.indexOf(dest[dest.length - 1]) + 1;
@@ -166,19 +166,19 @@ export function getCard(state, id) {
   return state.cards.find((c) => c.id === id);
 }
 
-/** @returns {string} p. ej. 'TK-014' */
+/** @returns {string} e.g. 'TK-014' */
 export function formatCode(card) {
   return `TK-${String(card.seq).padStart(3, '0')}`;
 }
 
-/** Búsqueda sin distinguir mayúsculas en título, etiqueta y código. */
+/** Case-insensitive search across title, label and code. */
 export function matchesQuery(card, query) {
   const q = query.trim().toLowerCase();
   if (!q) return true;
   return [card.title, card.label ?? '', formatCode(card)].some((text) => text.toLowerCase().includes(q));
 }
 
-/** Vencida: tiene fecha anterior a hoy y no está hecha. */
+/** Overdue: due before today and not done. */
 export function isOverdue(card, now = Date.now()) {
   if (card.due == null || card.column === 'done') return false;
   const today = new Date(now);
@@ -196,7 +196,7 @@ export function progress(state) {
 
 const isCount = (n) => Number.isInteger(n) && n >= 0;
 
-/** Valida estructura y tipos de un valor desconocido (localStorage, importación). */
+/** Validates the structure and types of an unknown value (localStorage, import). */
 export function isValidState(value) {
   if (!value || typeof value !== 'object' || value.version !== 1) return false;
   if (!Array.isArray(value.cards) || !isCount(value.nextSeq) || !isCount(value.revision)) return false;

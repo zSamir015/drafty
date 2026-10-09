@@ -1,4 +1,4 @@
-/* Drafty: estética blueprint. Tokens arriba; el tema se puede forzar con [data-theme]. */
+/* Drafty: blueprint aesthetic. Tokens at the top; the theme can be forced with [data-theme]. */
 
 @font-face {
   font-family: 'Monaspace Argon';
@@ -329,7 +329,7 @@ button:active {
   filter: brightness(1.1);
 }
 
-/* Arrastre */
+/* Drag and drop */
 .is-dragging-any,
 .is-dragging-any * {
   cursor: grabbing !important;
@@ -374,7 +374,7 @@ button:active {
   pointer-events: none;
 }
 
-/* ---------- Barra superior ---------- */
+/* ---------- Top bar ---------- */
 
 .brand {
   display: flex;
@@ -503,7 +503,7 @@ button:active {
   }
 }
 
-/* ---------- Columnas ---------- */
+/* ---------- Columns ---------- */
 
 .column-meta {
   display: flex;
@@ -538,7 +538,7 @@ button:active {
   border-color: #c92a2a;
 }
 
-/* ---------- Tarjetas ---------- */
+/* ---------- Cards ---------- */
 
 .card {
   rotate: var(--tilt, 0 0 1 0deg);
@@ -682,7 +682,7 @@ button:active {
   color: #e03131;
 }
 
-/* ---------- Accesibilidad y diálogo ---------- */
+/* ---------- Accessibility and dialog ---------- */
 
 .sr-only {
   position: absolute;

@@ -3,8 +3,8 @@ import { reducedMotion } from './motion.js';
 const MAX_DEG = 4;
 
 /**
- * Inclinación 3D leve de la tarjeta bajo el mouse. Usa la propiedad CSS `rotate`
- * (vía --tilt), independiente del `transform` que anima Motion.
+ * Subtle 3D tilt of the card under the mouse. Uses the CSS `rotate` property
+ * (via --tilt), independent of the `transform` that Motion animates.
  */
 export function initTilt(board) {
   if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
@@ -26,7 +26,7 @@ export function initTilt(board) {
   });
 }
 
-/** Quita la inclinación (al empezar a arrastrar). */
+/** Removes the tilt (when a drag starts). */
 export function clearTilt(card) {
   card.style.removeProperty('--tilt');
 }

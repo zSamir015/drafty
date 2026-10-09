@@ -11,7 +11,7 @@ function paint(theme) {
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', COLORS[theme]);
 }
 
-/** Alterna claro/oscuro con un fundido (View Transitions si existe) y lo recuerda. */
+/** Toggles light/dark with a crossfade (View Transitions when available) and remembers it. */
 export function initTheme(button) {
   paint(currentTheme());
   button.addEventListener('click', () => {
@@ -21,7 +21,7 @@ export function initTheme(button) {
     try {
       localStorage.setItem(KEY, next);
     } catch {
-      // sin persistencia: el tema dura lo que la pestaña
+      // no persistence: the theme lasts as long as the tab
     }
   });
 }

@@ -1,13 +1,13 @@
 /**
- * Atajos globales y teclado sobre tarjetas enfocadas.
- * Solo traduce teclas a llamadas de `handlers`; no conoce el estado.
+ * Global shortcuts and keyboard control of focused cards.
+ * It only turns keys into `handlers` calls; it does not know about the state.
  */
 const ARROWS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' };
 
 const isTyping = (el) => Boolean(el.closest?.('input, textarea, select, [contenteditable="true"]'));
 const visibleCards = (list) => [...list.querySelectorAll('.card:not(.is-exiting):not(.is-placeholder)')];
 
-/** Flechas sin modificador: mueven el foco entre tarjetas. */
+/** Arrow keys without modifiers: move focus between cards. */
 function focusNeighbor(card, dir) {
   const list = card.parentElement;
   if (dir === 'up' || dir === 'down') {
@@ -35,7 +35,7 @@ export function initKeyboard(handlers) {
     const mod = e.ctrlKey || e.metaKey;
 
     if (mod && !e.altKey) {
-      // En un campo de texto, Ctrl+Z deshace el texto, no el tablero
+      // Inside a text field, Ctrl+Z undoes the text, not the board
       if (isTyping(e.target)) return;
       const key = e.key.toLowerCase();
       if (key === 'z' && !e.shiftKey) handlers.undo();

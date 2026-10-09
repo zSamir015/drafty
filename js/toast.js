@@ -2,7 +2,7 @@ import { toastIn, toastOut } from './motion.js';
 
 const MAX_VISIBLE = 3;
 
-/** Cierra cada toast; permite descartar el más antiguo al pasar el máximo. */
+/** Closes each toast; lets the oldest one be dismissed when over the limit. */
 const closers = new WeakMap();
 let region;
 
@@ -19,9 +19,9 @@ function getRegion() {
 }
 
 /**
- * Muestra un toast. Se pausa con el puntero o el foco encima.
+ * Shows a toast. It pauses while the pointer or focus is on it.
  * @param {{ message: string, actionLabel?: string, onAction?: () => void, duration?: number }} options
- * @returns {() => void} función para cerrarlo
+ * @returns {() => void} function that closes it
  */
 export function showToast({ message, actionLabel = 'Deshacer', onAction, duration = 5000 }) {
   const host = getRegion();

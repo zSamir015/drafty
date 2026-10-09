@@ -1,6 +1,6 @@
 /**
- * Único módulo que toca Motion (global `Motion`, cargado desde vendor/motion.js).
- * Con `prefers-reduced-motion` todo se reduce a un fade corto, sin movimiento.
+ * The only module that touches Motion (global `Motion`, loaded from vendor/motion.js).
+ * With `prefers-reduced-motion`, everything becomes a short fade with no movement.
  */
 const { animate, stagger } = window.Motion;
 
@@ -14,10 +14,10 @@ export const spring = {
 
 const FADE = { duration: 0.1, ease: 'linear' };
 
-/** FLIPs en curso, para poder cancelarlos antes de volver a medir. */
+/** In-flight FLIPs, so they can be stopped before measuring again. */
 const running = new WeakMap();
 
-/** Entrada de una o varias tarjetas; con `cascade`, escalonadas. */
+/** Entrance of one or more cards; staggered with `cascade`. */
 export function enter(els, { cascade = false } = {}) {
   const list = [].concat(els);
   if (list.length === 0) return;
@@ -32,7 +32,7 @@ export function enter(els, { cascade = false } = {}) {
   );
 }
 
-/** Colapsa y elimina el nodo. Mientras anima sigue en el DOM con `.is-exiting`. */
+/** Collapses and removes the node. While animating it stays in the DOM with `.is-exiting`. */
 export async function exit(el) {
   el.classList.add('is-exiting');
   el.setAttribute('aria-hidden', 'true');
@@ -60,9 +60,9 @@ export async function exit(el) {
 }
 
 /**
- * Mide las posiciones actuales (visuales) y detiene los FLIPs en curso.
- * Ojo: `cancel()` de Motion vuelve al primer keyframe y lo deja escrito;
- * por eso se usa `stop()` y se limpia el desplazamiento a mano.
+ * Measures the current (visual) positions and stops any in-flight FLIPs.
+ * Careful: Motion's `cancel()` jumps back to the first keyframe and leaves it applied,
+ * so we use `stop()` and reset the offset by hand.
  */
 export function measure(els) {
   const rects = new Map();
@@ -77,7 +77,7 @@ export function measure(els) {
   return rects;
 }
 
-/** Anima cada elemento desde donde estaba hasta donde quedó tras el cambio de DOM. */
+/** Animates each element from where it was to where it ended up after the DOM change. */
 export function flip(before) {
   if (reducedMotion()) return;
   for (const [el, a] of before) {
@@ -94,7 +94,7 @@ export function flip(before) {
   }
 }
 
-/** Cambio de contenido de una tarjeta (edición, título nuevo). */
+/** Content change on a card (edit mode, new title). */
 export function swap(el) {
   if (reducedMotion()) {
     animate(el, { opacity: [0, 1] }, FADE);
@@ -103,14 +103,14 @@ export function swap(el) {
   animate(el, { opacity: [0, 1], y: [4, 0] }, { duration: 0.16, ease: 'easeOut' });
 }
 
-/** Cambia el texto de un contador con un pequeño desplazamiento vertical. */
+/** Changes a counter's text with a small vertical slide. */
 export function tick(el, text, dir) {
   el.textContent = text;
   if (reducedMotion()) return;
   animate(el, { y: [dir * 8, 0], opacity: [0, 1] }, spring.snappy);
 }
 
-/** Entrada de un toast: sube y se expande con spring. */
+/** Toast entrance: slides up and expands with a spring. */
 export function toastIn(el) {
   if (reducedMotion()) {
     animate(el, { opacity: [0, 1] }, FADE);
@@ -119,7 +119,7 @@ export function toastIn(el) {
   animate(el, { opacity: [0, 1], y: [24, 0], scale: [0.9, 1] }, spring.soft);
 }
 
-/** Salida de un toast; elimina el nodo al terminar. */
+/** Toast exit; removes the node when done. */
 export async function toastOut(el) {
   el.classList.add('is-leaving');
   el.inert = true;
@@ -128,7 +128,7 @@ export async function toastOut(el) {
   el.remove();
 }
 
-/** Anima un valor numérico (0 -> 1 por defecto) llamando a `onUpdate` en cada frame. */
+/** Animates a number (0 -> 1 by default), calling `onUpdate` every frame. */
 export function driver(onUpdate, { from = 0, to = 1, options = spring.snappy } = {}) {
   if (reducedMotion()) {
     onUpdate(to);
@@ -138,8 +138,8 @@ export function driver(onUpdate, { from = 0, to = 1, options = spring.snappy } =
 }
 
 /**
- * Lleva la tarjeta fantasma desde su pose actual hasta el hueco.
- * `from` y `to`: { x, y, rot, scale } (x, y en px relativos al origen del fantasma).
+ * Moves the ghost card from its current pose into the gap.
+ * `from` and `to`: { x, y, rot, scale } (x, y in px relative to the ghost's origin).
  */
 export function settle(ghost, from, to) {
   const mix = (a, b, t) => a + (b - a) * t;
@@ -151,7 +151,7 @@ export function settle(ghost, from, to) {
   );
 }
 
-/** Sello que cae sobre la tarjeta y se desvanece. */
+/** A stamp that drops onto the card and fades out. */
 export function stamp(card, text) {
   if (reducedMotion()) return;
   const el = document.createElement('span');

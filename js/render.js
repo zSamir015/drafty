@@ -4,15 +4,15 @@ import { enter, exit, flip, measure, swap, tick } from './motion.js';
 export const COLUMN_NAMES = Object.freeze({ todo: 'Por hacer', doing: 'En progreso', done: 'Hecho' });
 const PRIORITY_NAMES = Object.freeze({ low: 'Baja', med: 'Media', high: 'Alta' });
 
-/** id -> { el, key }. Los nodos se reutilizan entre renders. */
+/** id -> { el, key }. Nodes are reused between renders. */
 const nodes = new Map();
-/** columna -> último contador mostrado. */
+/** column -> last counter shown. */
 const counts = new Map();
 let first = true;
 
 const dateFormat = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short' });
 
-/** Timestamp (medianoche local) -> 'YYYY-MM-DD' para <input type="date">. */
+/** Timestamp (local midnight) -> 'YYYY-MM-DD' for <input type="date">. */
 export function toDateInput(ts) {
   if (ts == null) return '';
   const d = new Date(ts);
@@ -20,14 +20,14 @@ export function toDateInput(ts) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-/** 'YYYY-MM-DD' -> timestamp de la medianoche local, o null. */
+/** 'YYYY-MM-DD' -> local-midnight timestamp, or null. */
 export function fromDateInput(value) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) return null;
   return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])).getTime();
 }
 
-/** Crea un elemento. El texto siempre va como nodo de texto (nunca innerHTML). */
+/** Creates an element. Text always goes in as a text node (never innerHTML). */
 function h(tag, props = {}, ...children) {
   const el = document.createElement(tag);
   for (const [key, value] of Object.entries(props)) {
@@ -41,13 +41,13 @@ function h(tag, props = {}, ...children) {
   return el;
 }
 
-/** Lo que cambia la apariencia de una tarjeta; si no cambia, se reutiliza el nodo. */
+/** What changes a card's appearance; if it stays the same, the node is reused. */
 const cardKey = (card, editing, overdue) =>
   JSON.stringify([card.title, card.priority ?? null, card.label ?? null, card.due ?? null, editing, overdue]);
 
 /**
- * Opciones de "Mover a…" según la columna actual. Se actualizan en el mismo nodo:
- * reemplazar la tarjeta al cambiar de columna rompería el arrastre y sus animaciones.
+ * "Move to…" options for the current column. They are updated in place:
+ * replacing the card when it changes column would break dragging and its animations.
  */
 function syncMoveSelect(el, column) {
   if (el.dataset.moveColumn === column) return;
@@ -148,7 +148,7 @@ function renderCard(card, editing, overdue) {
   );
 }
 
-/** Ordena `wanted` dentro de `list` moviendo lo mínimo; no toca los nodos que están saliendo. */
+/** Orders `wanted` inside `list` with as few moves as possible; leaves exiting nodes alone. */
 function place(list, wanted) {
   let cursor = list.firstElementChild;
   for (const el of wanted) {
@@ -161,11 +161,11 @@ function place(list, wanted) {
 }
 
 /**
- * Dibuja un tablero a partir de su estado, reutilizando nodos y animando los cambios.
+ * Renders a board from its state, reusing nodes and animating the changes.
  * @param {import('./state.js').BoardState} state
  * @param {{ editingId: string|null, query: string }} ui
  * @param {ParentNode} root
- * @param {{ wip?: number|null, reset?: boolean }} [options] `reset`: cambio de tablero, sin animar salidas
+ * @param {{ wip?: number|null, reset?: boolean }} [options] `reset`: board switch, without exit animations
  */
 export function render(state, ui, root, { wip = null, reset = false } = {}) {
   if (reset) {

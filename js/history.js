@@ -1,5 +1,5 @@
 /**
- * Historial deshacer/rehacer sobre estados inmutables. Funciones puras.
+ * Undo/redo history over immutable states. Pure functions.
  * @typedef {{ past: any[], future: any[], limit: number }} History
  */
 
@@ -8,7 +8,7 @@ export function createHistory(limit = 100) {
   return { past: [], future: [], limit };
 }
 
-/** Registra `state` (el estado previo al cambio) y descarta el futuro. */
+/** Records `state` (the state before the change) and drops the future. */
 export function push(history, state) {
   return {
     ...history,
@@ -17,7 +17,7 @@ export function push(history, state) {
   };
 }
 
-/** @returns {{ history: History, state: any } | null} `current` pasa al futuro. */
+/** @returns {{ history: History, state: any } | null} `current` moves to the future. */
 export function undo(history, current) {
   if (history.past.length === 0) return null;
   return {
@@ -30,7 +30,7 @@ export function undo(history, current) {
   };
 }
 
-/** @returns {{ history: History, state: any } | null} `current` vuelve al pasado. */
+/** @returns {{ history: History, state: any } | null} `current` goes back to the past. */
 export function redo(history, current) {
   if (history.future.length === 0) return null;
   return {

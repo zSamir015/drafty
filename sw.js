@@ -1,6 +1,6 @@
 /**
- * Service worker: red primero, caché como respaldo.
- * Así nunca sirve archivos viejos mientras hay conexión, y sin conexión la app abre igual.
+ * Service worker: network first, cache as a fallback.
+ * It never serves stale files while online, and the app still opens offline.
  */
 const CACHE = 'drafty-v2';
 const ASSETS = [

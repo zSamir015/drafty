@@ -1,11 +1,11 @@
 /**
- * Varios tableros. Funciones puras sobre el workspace (v2), que envuelve
- * estados de tablero (BoardState, ver state.js) sin cambiarlos.
+ * Multiple boards. Pure functions over the workspace (v2), which wraps
+ * board states (BoardState, see state.js) without changing them.
  *
  * @typedef {Object} Board
  * @property {string} id
  * @property {string} name
- * @property {number|null} wip  límite de tarjetas en "En progreso"
+ * @property {number|null} wip  card limit for the "In progress" column
  * @property {import('./state.js').BoardState} state
  *
  * @typedef {Object} Workspace
@@ -27,7 +27,7 @@ export function createWorkspace(state = createInitialState(), name = 'Mi tablero
   return { version: 2, activeId: id, boards: [{ id, name, wip: null, state }] };
 }
 
-/** Convierte cualquier versión guardada en un workspace; `null` si no es válida. */
+/** Turns any saved version into a workspace; `null` if it is not valid. */
 export function migrate(value) {
   if (isValidWorkspace(value)) return value;
   if (isValidState(value)) return createWorkspace(value);
@@ -43,7 +43,7 @@ function replaceBoard(ws, board) {
   return { ...ws, boards: ws.boards.map((b) => (b.id === board.id ? board : b)) };
 }
 
-/** Aplica una función de state.js al tablero activo. */
+/** Applies a state.js function to the active board. */
 export function updateActive(ws, fn) {
   const board = activeBoard(ws);
   const next = fn(board.state);
@@ -76,7 +76,7 @@ export function setActive(ws, id) {
   return { ...ws, activeId: id };
 }
 
-/** `limit`: entero 1..MAX_WIP, o null para quitarlo. */
+/** `limit`: integer 1..MAX_WIP, or null to remove it. */
 export function setWip(ws, limit) {
   if (limit !== null && !(Number.isInteger(limit) && limit >= 1 && limit <= MAX_WIP)) return ws;
   const board = activeBoard(ws);

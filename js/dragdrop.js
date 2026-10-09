@@ -1,23 +1,23 @@
 /**
- * Arrastre con pointer events (mouse y táctil).
- * La tarjeta original queda como hueco (`.is-placeholder`) y se mueve por el DOM
- * mientras se arrastra; una copia (`.is-ghost`) sigue al puntero. Al soltar solo
- * avisa `onMove(id, column, index)`: no conoce el estado ni lo modifica.
+ * Drag and drop with pointer events (mouse and touch).
+ * The original card stays behind as the gap (`.is-placeholder`) and moves through the DOM
+ * while dragging; a copy (`.is-ghost`) follows the pointer. On drop it only reports
+ * `onMove(id, column, index)`: it does not know about the state or change it.
  */
 import { driver, flip, measure, reducedMotion, settle, spring, stamp } from './motion.js';
 import { clearTilt } from './tilt.js';
 
-const MOUSE_THRESHOLD = 4; // px antes de empezar a arrastrar con mouse
-const HOLD_MS = 220; // pulsación larga para empezar con el dedo
-const HOLD_SLOP = 8; // si el dedo se mueve más, es scroll
-const EDGE = 64; // px del borde donde empieza el autoscroll
-const SCROLL_MAX = 14; // px por frame
+const MOUSE_THRESHOLD = 4; // px before a mouse drag starts
+const HOLD_MS = 220; // long press to start a touch drag
+const HOLD_SLOP = 8; // if the finger moves further, it is a scroll
+const EDGE = 64; // px from the edge where autoscroll starts
+const SCROLL_MAX = 14; // px per frame
 
 const clamp = (n, min, max) => Math.min(Math.max(n, min), max);
 const isLive = (el) => el.classList.contains('card') && !el.classList.contains('is-exiting');
 const liveCards = (list) => [...list.children].filter(isLive);
 
-/** Columna más cercana: primero por distancia horizontal, luego por vertical. */
+/** Nearest column: first by horizontal distance, then by vertical. */
 function nearestColumn(columns, x, y) {
   let best = columns[0];
   let bestDx = Infinity;
@@ -80,7 +80,7 @@ export function initDragDrop(board, onMove) {
       if (pending.type === 'mouse') {
         if (dist > MOUSE_THRESHOLD) begin();
       } else if (dist > HOLD_SLOP) {
-        clearPending(); // era un scroll
+        clearPending(); // it was a scroll
       }
     } else if (drag && e.pointerId === drag.pointerId) {
       drag.px = e.clientX;
@@ -102,7 +102,7 @@ export function initDragDrop(board, onMove) {
     if (e.key === 'Escape' && drag) finish(false);
   });
 
-  // Con el dedo, una vez arrastrando, el navegador no debe hacer scroll ni abrir menús
+  // With touch, once dragging, the browser must not scroll or open menus
   document.addEventListener('touchmove', (e) => drag && e.preventDefault(), { passive: false });
   board.addEventListener('contextmenu', (e) => (pending || drag) && e.preventDefault());
 
@@ -155,7 +155,7 @@ export function initDragDrop(board, onMove) {
     d.raf = requestAnimationFrame(frame);
   }
 
-  /** Pose actual del fantasma. */
+  /** Current pose of the ghost. */
   function pose(d) {
     const motion = !reducedMotion();
     return {
@@ -178,12 +178,12 @@ export function initDragDrop(board, onMove) {
     const dt = clamp(now - d.last, 1, 50);
     d.last = now;
 
-    // Inclinación según la velocidad horizontal, suavizada
+    // Tilt based on horizontal velocity, smoothed
     const vx = ((d.px - d.lastX) / dt) * 16;
     d.lastX = d.px;
     d.tilt += (clamp(vx * 0.6, -8, 8) - d.tilt) * 0.2;
 
-    // Autoscroll vertical cerca de los bordes
+    // Vertical autoscroll near the edges
     if (d.py < EDGE) window.scrollBy(0, -SCROLL_MAX * ((EDGE - d.py) / EDGE));
     else if (d.py > innerHeight - EDGE) window.scrollBy(0, SCROLL_MAX * ((d.py - (innerHeight - EDGE)) / EDGE));
 
@@ -192,13 +192,13 @@ export function initDragDrop(board, onMove) {
     d.raf = requestAnimationFrame(frame);
   }
 
-  /** Mueve el hueco a la columna/posición bajo el puntero. */
+  /** Moves the gap to the column/position under the pointer. */
   function retarget(d) {
     const section = nearestColumn(columns, d.px, d.py);
     const list = section.querySelector('.cards');
     const localY = d.py - list.getBoundingClientRect().top;
 
-    // offsetTop ignora las transformaciones en curso (FLIP), así no hay vaivén
+    // offsetTop ignores in-flight transforms (FLIP), so there is no jitter
     const others = liveCards(list).filter((el) => el !== d.card);
     let index = others.findIndex((el) => el.offsetTop + el.offsetHeight / 2 > localY);
     if (index === -1) index = others.length;

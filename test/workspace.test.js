@@ -14,7 +14,7 @@ import {
   updateActive,
 } from '../js/workspace.js';
 
-test('migrate envuelve un estado v1 sin perder tarjetas', () => {
+test('migrate wraps a v1 state without losing cards', () => {
   const v1 = createInitialState();
   const ws = migrate(v1);
   assert.equal(ws.version, 2);
@@ -22,14 +22,14 @@ test('migrate envuelve un estado v1 sin perder tarjetas', () => {
   assert.equal(isValidWorkspace(ws), true);
 });
 
-test('migrate acepta un workspace válido tal cual y rechaza basura', () => {
+test('migrate keeps a valid workspace as is and rejects junk', () => {
   const ws = createWorkspace();
   assert.equal(migrate(ws), ws);
   assert.equal(migrate({ hola: 1 }), null);
   assert.equal(migrate(null), null);
 });
 
-test('updateActive solo cambia el tablero activo', () => {
+test('updateActive only changes the active board', () => {
   let ws = createWorkspace();
   ws = addBoard(ws, 'Otro');
   const other = ws.boards[0];
@@ -39,14 +39,14 @@ test('updateActive solo cambia el tablero activo', () => {
   assert.equal(updateActive(ws, (s) => s), ws);
 });
 
-test('addBoard crea un tablero vacío y lo activa', () => {
+test('addBoard creates an empty board and activates it', () => {
   const ws = addBoard(createWorkspace(), '  Personal ');
   assert.equal(ws.boards.length, 2);
   assert.equal(activeBoard(ws).name, 'Personal');
   assert.equal(activeBoard(ws).state.cards.length, 0);
 });
 
-test('renameBoard y setActive', () => {
+test('renameBoard and setActive', () => {
   let ws = addBoard(createWorkspace(), 'B');
   const first = ws.boards[0].id;
   ws = renameBoard(ws, first, 'Trabajo');
@@ -57,7 +57,7 @@ test('renameBoard y setActive', () => {
   assert.equal(setActive(ws, 'nope'), ws);
 });
 
-test('deleteBoard no borra el último y reactiva un vecino', () => {
+test('deleteBoard keeps the last board and activates a neighbor', () => {
   const single = createWorkspace();
   assert.equal(deleteBoard(single, single.activeId), single);
   let ws = addBoard(single, 'B');
@@ -66,7 +66,7 @@ test('deleteBoard no borra el último y reactiva un vecino', () => {
   assert.equal(ws.activeId, ws.boards[0].id);
 });
 
-test('setWip valida el límite', () => {
+test('setWip validates the limit', () => {
   const ws = createWorkspace();
   assert.equal(activeBoard(setWip(ws, 3)).wip, 3);
   assert.equal(activeBoard(setWip(setWip(ws, 3), null)).wip, null);
@@ -74,7 +74,7 @@ test('setWip valida el límite', () => {
   assert.equal(setWip(ws, 2.5), ws);
 });
 
-test('isValidWorkspace rechaza activeId inexistente o tableros inválidos', () => {
+test('isValidWorkspace rejects a missing activeId or invalid boards', () => {
   const ws = createWorkspace();
   assert.equal(isValidWorkspace({ ...ws, activeId: 'x' }), false);
   assert.equal(isValidWorkspace({ ...ws, boards: [] }), false);
