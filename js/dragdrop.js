@@ -5,6 +5,7 @@
  * avisa `onMove(id, column, index)`: no conoce el estado ni lo modifica.
  */
 import { driver, flip, measure, reducedMotion, settle, spring, stamp } from './motion.js';
+import { clearTilt } from './tilt.js';
 
 const MOUSE_THRESHOLD = 4; // px antes de empezar a arrastrar con mouse
 const HOLD_MS = 220; // pulsación larga para empezar con el dedo
@@ -56,7 +57,7 @@ export function initDragDrop(board, onMove) {
     if (drag || pending || e.button !== 0 || !e.isPrimary) return;
     const card = e.target.closest('.card');
     if (!card || card.classList.contains('is-editing') || card.classList.contains('is-exiting')) return;
-    if (e.target.closest('button, input, a')) return;
+    if (e.target.closest('button, input, select, a')) return;
 
     pending = {
       card,
@@ -110,6 +111,7 @@ export function initDragDrop(board, onMove) {
     const { card, pointerId, x, y } = pending;
     clearPending();
 
+    clearTilt(card);
     const origin = card.getBoundingClientRect();
     const ghost = card.cloneNode(true);
     ghost.classList.add('is-ghost');

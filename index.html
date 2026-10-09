@@ -4,44 +4,112 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Drafty</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b2a55'/%3E%3Cpath d='M8 8h16v16H8z' fill='none' stroke='%23ff922b' stroke-width='2' stroke-dasharray='3 2'/%3E%3C/svg%3E" />
+    <meta name="description" content="Tablero Kanban con estética blueprint, arrastre fluido y animaciones con Motion. Vanilla JS, sin build." />
+    <meta name="theme-color" content="#0b2a55" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <script>
+      // Antes de pintar: aplica el tema guardado para evitar un destello
+      try {
+        const theme = localStorage.getItem('drafty:theme');
+        if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+      } catch {}
+    </script>
     <link rel="stylesheet" href="css/styles.css" />
     <script src="vendor/motion.js"></script>
     <script type="module" src="js/main.js"></script>
   </head>
   <body>
+    <a class="skip" href="#board">Saltar al tablero</a>
+
     <header class="topbar">
-      <h1>Drafty</h1>
-      <span class="rev" role="status" aria-label="Revisión del tablero">REV 000</span>
+      <div class="brand">
+        <h1>Drafty</h1>
+        <span class="rev" aria-label="Revisión del tablero">REV 000</span>
+      </div>
+
+      <nav class="boards" aria-label="Tableros">
+        <ul class="board-tabs" role="list"></ul>
+        <button type="button" class="icon-button" data-action="add-board" aria-label="Nuevo tablero" title="Nuevo tablero">+</button>
+      </nav>
+
+      <div class="tools">
+        <label class="search">
+          <span class="sr-only">Buscar tarjetas</span>
+          <input id="search" type="search" placeholder="Buscar…  /" autocomplete="off" />
+        </label>
+        <button type="button" class="icon-button" data-action="export" title="Exportar JSON" aria-label="Exportar JSON">⇩</button>
+        <button type="button" class="icon-button" data-action="import" title="Importar JSON" aria-label="Importar JSON">⇧</button>
+        <input id="import-file" type="file" accept="application/json,.json" hidden />
+        <button type="button" class="icon-button" data-action="theme" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+        <button type="button" class="icon-button" data-action="help" title="Atajos de teclado (?)" aria-label="Atajos de teclado">?</button>
+      </div>
+
+      <div class="progress" role="progressbar" aria-label="Progreso del tablero" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="progress-bar"></div>
+        <span class="progress-label">0%</span>
+      </div>
     </header>
 
-    <main class="board">
+    <main class="board" id="board">
       <section class="column" data-column="todo" aria-labelledby="col-todo">
         <h2 id="col-todo">Por hacer <span class="count"></span></h2>
-        <ul class="cards"></ul>
+        <ul class="cards" role="list"></ul>
         <form class="add-form">
           <input name="title" type="text" placeholder="Nueva tarea…" aria-label="Nueva tarea en Por hacer" required />
           <button type="submit">Añadir</button>
+          <span class="char-count" aria-live="polite"></span>
         </form>
       </section>
 
       <section class="column" data-column="doing" aria-labelledby="col-doing">
-        <h2 id="col-doing">En progreso <span class="count"></span></h2>
-        <ul class="cards"></ul>
+        <h2 id="col-doing">
+          En progreso
+          <span class="column-meta">
+            <label class="wip" title="Límite de tareas en progreso (vacío = sin límite)">
+              WIP <input class="wip-input" type="number" min="1" max="99" inputmode="numeric" aria-label="Límite WIP" />
+            </label>
+            <span class="count"></span>
+          </span>
+        </h2>
+        <ul class="cards" role="list"></ul>
         <form class="add-form">
           <input name="title" type="text" placeholder="Nueva tarea…" aria-label="Nueva tarea en En progreso" required />
           <button type="submit">Añadir</button>
+          <span class="char-count" aria-live="polite"></span>
         </form>
       </section>
 
       <section class="column" data-column="done" aria-labelledby="col-done">
         <h2 id="col-done">Hecho <span class="count"></span></h2>
-        <ul class="cards"></ul>
+        <ul class="cards" role="list"></ul>
         <form class="add-form">
           <input name="title" type="text" placeholder="Nueva tarea…" aria-label="Nueva tarea en Hecho" required />
           <button type="submit">Añadir</button>
+          <span class="char-count" aria-live="polite"></span>
         </form>
       </section>
     </main>
+
+    <div id="announcer" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+
+    <dialog id="help" aria-labelledby="help-title">
+      <h2 id="help-title">Atajos de teclado</h2>
+      <dl class="shortcuts">
+        <dt><kbd>N</kbd></dt><dd>Nueva tarea</dd>
+        <dt><kbd>/</kbd></dt><dd>Buscar</dd>
+        <dt><kbd>?</kbd></dt><dd>Esta ayuda</dd>
+        <dt><kbd>Ctrl</kbd> <kbd>Z</kbd></dt><dd>Deshacer</dd>
+        <dt><kbd>Ctrl</kbd> <kbd>⇧</kbd> <kbd>Z</kbd></dt><dd>Rehacer</dd>
+        <dt><kbd>Alt</kbd> <kbd>←</kbd> <kbd>→</kbd></dt><dd>Mover tarjeta de columna</dd>
+        <dt><kbd>Alt</kbd> <kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Reordenar tarjeta</dd>
+        <dt><kbd>Enter</kbd></dt><dd>Editar tarjeta enfocada</dd>
+        <dt><kbd>Supr</kbd></dt><dd>Borrar tarjeta enfocada</dd>
+        <dt><kbd>Esc</kbd></dt><dd>Cancelar edición o arrastre</dd>
+      </dl>
+      <p class="hint">Doble clic en una tarjeta para editarla. En móvil, mantén pulsado para arrastrar.</p>
+      <form method="dialog"><button type="submit">Cerrar</button></form>
+    </dialog>
   </body>
 </html>
