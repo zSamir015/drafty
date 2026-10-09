@@ -2,7 +2,7 @@
  * Service worker: red primero, caché como respaldo.
  * Así nunca sirve archivos viejos mientras hay conexión, y sin conexión la app abre igual.
  */
-const CACHE = 'drafty-v1';
+const CACHE = 'drafty-v2';
 const ASSETS = [
   './',
   'index.html',
@@ -13,6 +13,7 @@ const ASSETS = [
   'fonts/MonaspaceNeon-Var.woff2',
   'icons/icon.svg',
   'icons/icon-192.png',
+  'js/theme-init.js',
   'js/main.js',
   'js/state.js',
   'js/workspace.js',

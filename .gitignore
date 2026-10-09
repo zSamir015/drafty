@@ -1,3 +1,18 @@
+# Dependencias
 node_modules/
+
+# Secretos y credenciales: nunca al repo
+.env
+.env.*
+*.pem
+*.key
+*.p12
+
+# Builds y reportes locales
+dist/
+build/
+coverage/
+
+# Sistema y logs
 .DS_Store
 *.log

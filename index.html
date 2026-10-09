@@ -3,19 +3,18 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+    />
+    <meta name="referrer" content="no-referrer" />
     <title>Drafty</title>
     <meta name="description" content="Tablero Kanban con estética blueprint, arrastre fluido y animaciones con Motion. Vanilla JS, sin build." />
     <meta name="theme-color" content="#0b2a55" />
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <link rel="manifest" href="manifest.webmanifest" />
-    <script>
-      // Antes de pintar: aplica el tema guardado para evitar un destello
-      try {
-        const theme = localStorage.getItem('drafty:theme');
-        if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
-      } catch {}
-    </script>
+    <script src="js/theme-init.js"></script>
     <link rel="stylesheet" href="css/styles.css" />
     <script src="vendor/motion.js"></script>
     <script type="module" src="js/main.js"></script>

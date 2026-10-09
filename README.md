@@ -1,5 +1,10 @@
 # Drafty
 
+[![Tests](https://github.com/zSamir015/drafty/actions/workflows/test.yml/badge.svg)](https://github.com/zSamir015/drafty/actions/workflows/test.yml)
+[![Licencia MIT](https://img.shields.io/badge/licencia-MIT-blue.svg)](LICENSE)
+
+**[Demo en vivo →](https://zsamir015.github.io/drafty/)**
+
 Tablero Kanban con estética de plano técnico (blueprint), arrastre fluido y animaciones con física. Hecho en **JavaScript vanilla**, sin frameworks ni build.
 
 ![Demo: añadir, arrastrar entre columnas, sello al terminar y deshacer](docs/media/demo.gif)
@@ -71,7 +76,7 @@ js/
 ├── dragdrop.js   Arrastre con pointer events; solo emite (id, columna, índice).
 ├── keyboard.js   Atajos y movimiento con teclado.
 ├── toast.js      Notificaciones con acción.
-├── theme.js      Tema claro / oscuro.
+├── theme.js      Tema claro / oscuro (theme-init.js lo aplica antes de pintar).
 ├── tilt.js       Inclinación 3D al pasar el mouse.
 └── main.js       Conecta los módulos.
 ```
@@ -82,6 +87,10 @@ Decisiones de diseño:
 - **Arrastre propio en vez del DnD nativo de HTML5.** El nativo no permite animar la tarjeta arrastrada ni funciona con el dedo.
 - **El arrastre, el teclado y «Mover a…» comparten `moveCard`**, así que se comportan igual.
 - **El texto del usuario nunca pasa por `innerHTML`**, y los datos importados se validan antes de usarse.
+
+## Licencia
+
+[MIT](LICENSE) © 2026 Samir Lorenzo
 
 ## Créditos
 
