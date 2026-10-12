@@ -15,8 +15,11 @@
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <link rel="manifest" href="manifest.webmanifest" />
     <script src="js/theme-init.js"></script>
+    <link rel="preload" href="fonts/DraftyArgon-Var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fonts/DraftyNeon-Var.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="css/styles.css" />
-    <script src="vendor/motion.js"></script>
+    <!-- defer: still runs before the main module (both run in document order), but no longer blocks the first paint. -->
+    <script src="vendor/motion.js" defer></script>
     <script type="module" src="js/main.js"></script>
   </head>
   <body>

@@ -1,16 +1,19 @@
 /* Drafty: blueprint aesthetic. Tokens at the top; the theme can be forced with [data-theme]. */
 
+/* Drafty Argon and Drafty Neon are subsets of Monaspace Argon and Neon (SIL OFL 1.1): Latin,
+   punctuation, arrows and geometric shapes, weights 200 to 700. The OFL reserves the name
+   "Monaspace" for unmodified fonts, so the subsets are renamed. See fonts/README.md. */
 @font-face {
-  font-family: 'Monaspace Argon';
-  src: url('../fonts/MonaspaceArgon-Var.woff2') format('woff2');
-  font-weight: 200 800;
+  font-family: 'Drafty Argon';
+  src: url('../fonts/DraftyArgon-Var.woff2') format('woff2');
+  font-weight: 200 700;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Monaspace Neon';
-  src: url('../fonts/MonaspaceNeon-Var.woff2') format('woff2');
-  font-weight: 200 800;
+  font-family: 'Drafty Neon';
+  src: url('../fonts/DraftyNeon-Var.woff2') format('woff2');
+  font-weight: 200 700;
   font-display: swap;
 }
 
@@ -25,8 +28,8 @@
   --grid-minor: rgb(30 80 160 / 0.07);
   --grid-major: rgb(30 80 160 / 0.15);
   --gap: 0.5rem;
-  --font-ui: 'Monaspace Argon', ui-monospace, 'SF Mono', Menlo, monospace;
-  --font-code: 'Monaspace Neon', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-ui: 'Drafty Argon', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-code: 'Drafty Neon', ui-monospace, 'SF Mono', Menlo, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -118,6 +121,10 @@ body {
   .board {
     grid-template-columns: 1fr;
   }
+}
+
+.board:not(.is-ready) {
+  visibility: hidden;
 }
 
 .column {

@@ -182,7 +182,7 @@ js/
   main.js           wires the modules together and owns commit()
 sw.js               service worker
 vendor/             Motion 14.0.0 (UMD build)
-fonts/, icons/      self-hosted Monaspace fonts and app icons
+fonts/, icons/      self-hosted fonts (Monaspace subsets) and app icons
 test/               node --test suites for the pure modules
 ```
 
@@ -197,5 +197,5 @@ test/               node --test suites for the pure modules
 The code is under the [MIT license](LICENSE), © 2026 Samir Lorenzo.
 
 - [Motion](https://motion.dev) for animation (MIT).
-- [Monaspace](https://monaspace.githubnext.com) typeface (SIL OFL 1.1).
+- [Monaspace](https://monaspace.githubnext.com) typeface (SIL OFL 1.1), served as subsets renamed Drafty Argon and Drafty Neon as the license requires; see [fonts/README.md](fonts/README.md).
 - The toast design is inspired by [Sileo](https://github.com/hiaaryan/sileo).

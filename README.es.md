@@ -182,7 +182,7 @@ js/
   main.js           conecta los módulos y contiene commit()
 sw.js               service worker
 vendor/             Motion 14.0.0 (build UMD)
-fonts/, icons/      fuentes Monaspace e iconos de la app
+fonts/, icons/      fuentes (subconjuntos de Monaspace) e iconos de la app
 test/               suites de node --test para los módulos puros
 ```
 
@@ -197,5 +197,5 @@ test/               suites de node --test para los módulos puros
 El código está bajo [licencia MIT](LICENSE), © 2026 Samir Lorenzo.
 
 - [Motion](https://motion.dev) para la animación (MIT).
-- Tipografía [Monaspace](https://monaspace.githubnext.com) (SIL OFL 1.1).
+- Tipografía [Monaspace](https://monaspace.githubnext.com) (SIL OFL 1.1), servida como subconjuntos renombrados Drafty Argon y Drafty Neon, como pide la licencia; ver [fonts/README.md](fonts/README.md).
 - El diseño de los avisos está inspirado en [Sileo](https://github.com/hiaaryan/sileo).
