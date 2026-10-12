@@ -2,15 +2,15 @@
  * Service worker: network first, cache as a fallback.
  * It never serves stale files while online, and the app still opens offline.
  */
-const CACHE = 'drafty-v2';
+const CACHE = 'drafty-v3';
 const ASSETS = [
   './',
   'index.html',
   'manifest.webmanifest',
   'css/styles.css',
   'vendor/motion.js',
-  'fonts/MonaspaceArgon-Var.woff2',
-  'fonts/MonaspaceNeon-Var.woff2',
+  'fonts/DraftyArgon-Var.woff2',
+  'fonts/DraftyNeon-Var.woff2',
   'icons/icon.svg',
   'icons/icon-192.png',
   'js/theme-init.js',

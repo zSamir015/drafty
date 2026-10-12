@@ -43,6 +43,9 @@ function redraw() {
   renderedBoardId = active.id;
   render(active.state, ui, board, { wip: active.wip, reset });
   renderChrome(active);
+  // The columns arrive empty in the HTML; show the board once it has its cards, so filling
+  // the first column doesn't push the others down (a layout shift on stacked mobile columns).
+  board.classList.add('is-ready');
 }
 
 function renderChrome(active) {
