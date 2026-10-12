@@ -1,21 +1,37 @@
 # Drafty
 
+**A Kanban board styled like a technical drawing, with pointer-based drag and drop, Motion animations and offline support, in plain JavaScript.**
+
 [![Tests](https://github.com/zSamir015/drafty/actions/workflows/test.yml/badge.svg)](https://github.com/zSamir015/drafty/actions/workflows/test.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-English | [Español](README.es.md)
+**English** | [Español](README.es.md)
 
 Drafty is a Kanban board styled like a technical drawing. It is written in plain JavaScript with no framework and no build step, and the interface is in Spanish.
 
 The interesting part is the interaction layer: drag and drop is built on pointer events instead of the HTML5 drag API, the board re-renders by reconciling keyed nodes, and every change goes through one function that records history, saves and redraws. All of it works with the keyboard and offline.
 
-Live demo: https://zsamir015.github.io/drafty/
+**[Live demo →](https://zsamir015.github.io/drafty/)** · [Security policy](SECURITY.md)
 
 ![Adding a task, dragging it across columns, the done stamp and undo](docs/media/demo.gif)
 
 | Light                                               | Dark                                              | Mobile                                |
 | --------------------------------------------------- | ------------------------------------------------- | ------------------------------------- |
 | ![Board in light theme](docs/media/board-light.png) | ![Board in dark theme](docs/media/board-dark.png) | ![Mobile view](docs/media/mobile.png) |
+
+## Tech stack
+
+[![Stack](https://skillicons.dev/icons?i=js,html,css,nodejs,githubactions)](#how-it-works)
+
+JavaScript ES modules · HTML · CSS · Motion (vendored) · Service worker + Web App Manifest · node --test · GitHub Actions + Pages
+
+## Quickstart
+
+```sh
+git clone https://github.com/zSamir015/drafty.git && cd drafty
+npm run dev   # http://localhost:5173
+npm test
+```
 
 ## Contents
 
@@ -61,6 +77,18 @@ Live demo: https://zsamir015.github.io/drafty/
 | `Esc`                     | Cancel editing or dragging     |
 
 ## How it works
+
+```mermaid
+flowchart LR
+  IN["User input<br/>pointer, keyboard, menu"] --> ST["Pure state<br/>state.js · workspace.js · history.js"] --> C{"commit(next)"}
+  C --> H["undo history"]
+  C --> LS[("localStorage<br/>+ other tabs")]
+  C --> R["render.js<br/>keyed reconciliation"] --> M["motion.js<br/>FLIP, springs"]
+  SW["sw.js<br/>offline cache"] -.-> R
+  subgraph CI["GitHub Actions"]
+    T["tests + deploy to Pages"]
+  end
+```
 
 State and DOM are kept apart. The state modules (`state.js`, `workspace.js`, `history.js`) are pure functions over plain objects: they never touch the DOM and never mutate their input. Everything else reads that state and turns user input into calls to those functions.
 

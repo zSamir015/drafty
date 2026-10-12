@@ -1,21 +1,37 @@
 # Drafty
 
+**Un tablero Kanban con estética de plano técnico, arrastrar y soltar con pointer events, animaciones con Motion y funcionamiento sin conexión, en JavaScript puro.**
+
 [![Tests](https://github.com/zSamir015/drafty/actions/workflows/test.yml/badge.svg)](https://github.com/zSamir015/drafty/actions/workflows/test.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-[English](README.md) | Español
+[English](README.md) | **Español**
 
 Drafty es un tablero Kanban con aspecto de plano técnico. Está escrito en JavaScript sin frameworks ni paso de build, y la interfaz está en español.
 
 La parte interesante es la interacción: el arrastrar y soltar usa eventos de puntero en lugar de la API de arrastre de HTML5, el tablero se vuelve a dibujar reconciliando nodos con clave, y todo cambio pasa por una única función que guarda el historial, persiste y redibuja. Todo funciona con teclado y sin conexión.
 
-Demo: https://zsamir015.github.io/drafty/
+**[Demo en vivo →](https://zsamir015.github.io/drafty/)** · [Política de seguridad](SECURITY.md)
 
 ![Crear una tarea, arrastrarla entre columnas, el sello de terminado y deshacer](docs/media/demo.gif)
 
 | Claro                                                | Oscuro                                              | Móvil                                |
 | ---------------------------------------------------- | --------------------------------------------------- | ------------------------------------ |
 | ![Tablero en tema claro](docs/media/board-light.png) | ![Tablero en tema oscuro](docs/media/board-dark.png) | ![Vista móvil](docs/media/mobile.png) |
+
+## Stack técnico
+
+[![Stack](https://skillicons.dev/icons?i=js,html,css,nodejs,githubactions)](#cómo-funciona)
+
+Módulos ES de JavaScript · HTML · CSS · Motion (incluido en el repo) · Service worker + Web App Manifest · node --test · GitHub Actions + Pages
+
+## Inicio rápido
+
+```sh
+git clone https://github.com/zSamir015/drafty.git && cd drafty
+npm run dev   # http://localhost:5173
+npm test
+```
 
 ## Contenido
 
@@ -61,6 +77,18 @@ Demo: https://zsamir015.github.io/drafty/
 | `Esc`                     | Cancelar la edición o el arrastre     |
 
 ## Cómo funciona
+
+```mermaid
+flowchart LR
+  IN["Entrada<br/>puntero, teclado, menú"] --> ST["Estado puro<br/>state.js · workspace.js · history.js"] --> C{"commit(next)"}
+  C --> H["historial de deshacer"]
+  C --> LS[("localStorage<br/>+ otras pestañas")]
+  C --> R["render.js<br/>reconciliación por clave"] --> M["motion.js<br/>FLIP, resortes"]
+  SW["sw.js<br/>caché sin conexión"] -.-> R
+  subgraph CI["GitHub Actions"]
+    T["tests + despliegue a Pages"]
+  end
+```
 
 El estado y el DOM están separados. Los módulos de estado (`state.js`, `workspace.js`, `history.js`) son funciones puras sobre objetos simples: nunca tocan el DOM ni modifican lo que reciben. El resto del código lee ese estado y convierte lo que hace el usuario en llamadas a esas funciones.
 
